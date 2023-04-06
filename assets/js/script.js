@@ -2,6 +2,12 @@
 // the code isn't run until the browser has finished rendering all the elements
 // in the html.
 $(function () {
+  // Declare global variables
+  var dayEl = $("#currentDay");
+  var hourDivs = $("div[id^='hour-']");
+  var curHour
+
+
   // TODO: Add a listener for click events on the save button. This code should
   // use the id in the containing time-block as a key to save the user input in
   // local storage. HINT: What does `this` reference in the click listener
@@ -9,9 +15,38 @@ $(function () {
   // time-block containing the button that was clicked? How might the id be
   // useful when saving the description in local storage?
   //
+
   
-var dayEl = $("#currentDay")
-dayEl.text(dayjs().format("dddd, MMMM DD, YYYY"))
+
+  // On page load, set current date and current hour
+  dayEl.text(dayjs().format("dddd, MMMM DD, YYYY"));
+  updateHour()
+
+  // setTimeout and setInterval to updateHour at the top of the next hour and every hour after
+  var minLeft = 60 - dayjs().format("m");
+  var nextHour = setTimeout(function () {
+    updateHour()
+    var everyHour = setInterval(function() {
+      updateHour()
+    }, 60*60*1000)
+  }, minLeft*60*1000);
+
+  function updateHour() {
+    curHour = Number(dayjs().format("H"));
+    console.log("hour updated at: " + dayjs().format("H:mm:ss"));
+    for (let i = 0; i < hourDivs.length; i++) {
+      if (hourDivs[i].id.substr(5) == curHour) {
+        hourDivs[i].setAttribute("class", "row time-block present");
+      }
+      else if (hourDivs[i].id.substr(5) < curHour) {
+        hourDivs[i].setAttribute("class", "row time-block past");
+      }
+      else {
+        hourDivs[i].setAttribute("class", "row time-block future");
+      }     
+    }
+  }
+
 
   // TODO: Add code to apply the past, present, or future class to each time
   // block by comparing the id to the current hour. HINTS: How can the id
@@ -24,4 +59,6 @@ dayEl.text(dayjs().format("dddd, MMMM DD, YYYY"))
   // attribute of each time-block be used to do this?
   //
   // TODO: Add code to display the current date in the header of the page.
+  
+
 });
