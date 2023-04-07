@@ -2,63 +2,84 @@
 // the code isn't run until the browser has finished rendering all the elements
 // in the html.
 $(function () {
-  // Declare global variables
+  // Grab page elements
+  var saveButtonsArr = $(".saveBtn")
+  var descriptionElArr = $(".description")
   var dayEl = $("#currentDay");
-  var hourDivs = $("div[id^='hour-']");
-  var curHour
-
-
-  // TODO: Add a listener for click events on the save button. This code should
-  // use the id in the containing time-block as a key to save the user input in
-  // local storage. HINT: What does `this` reference in the click listener
-  // function? How can DOM traversal be used to get the "hour-x" id of the
-  // time-block containing the button that was clicked? How might the id be
-  // useful when saving the description in local storage?
-  //
-
+  var timeBlockDivsArr = $("div[id^='hour-']");
   
 
-  // On page load, set current date and current hour
+  // On page load: start event listeners, set the current date, and start the clock for styling the page based on the current hour
+  saveButtonsArr.click(saveTimeBlock)
+  descriptionElArr.change(function() {
+    needSaveStyle($(this).parent());
+  });
   dayEl.text(dayjs().format("dddd, MMMM DD, YYYY"));
-  updateHour()
+  fetchLocalSaves();
+  runTopOfTheHour();
+  
+  // Callback Functions:
+  
+  // For the save button that was clicked, reset the styling. 
+  // If the description text is null or only spaces, then remove any exisiting local storage (instead of holding a null value). 
+  // Otherwise, add to local storage (overwriting any current values) with the time-block's id as key and description as value.
+  function saveTimeBlock (event) {
+    $(this).css("background-color", "")
+    var parentDiv = $(this).parent(); 
+    var timeBlockStr = parentDiv[0].id;
+    var descriptionStr = parentDiv.children(".description")[0].value;
+    if (!descriptionStr.trim()) {
+      localStorage.removeItem(timeBlockStr);
+    }
+    else {
+      localStorage.setItem(timeBlockStr, descriptionStr);
+    }
+    
+  }
+  
+  // Style the save button with red background to indicate that user needs to save
+  function needSaveStyle(timeBlockParam) {
+    var saveButton = timeBlockParam.children(".saveBtn")
+    saveButton.css("background-color", "red")
+  }
 
-  // setTimeout and setInterval to updateHour at the top of the next hour and every hour after
-  var minLeft = 60 - dayjs().format("m");
-  var nextHour = setTimeout(function () {
-    updateHour()
-    var everyHour = setInterval(function() {
-      updateHour()
-    }, 60*60*1000)
-  }, minLeft*60*1000);
-
-  function updateHour() {
-    curHour = Number(dayjs().format("H"));
-    console.log("hour updated at: " + dayjs().format("H:mm:ss"));
-    for (let i = 0; i < hourDivs.length; i++) {
-      if (hourDivs[i].id.substr(5) == curHour) {
-        hourDivs[i].setAttribute("class", "row time-block present");
+  // Populate the page from localStorage
+  function fetchLocalSaves () {
+    for (let i = 0; i <= 24; i++) {
+      var savedDescriptionStr = localStorage.getItem("hour-" + i);
+      var timeBlockDiv = $("#hour-" + i);
+      if (timeBlockDiv.length && savedDescriptionStr) { 
+        timeBlockDiv.children(".description")[0].value = savedDescriptionStr;
       }
-      else if (hourDivs[i].id.substr(5) < curHour) {
-        hourDivs[i].setAttribute("class", "row time-block past");
+    }
+  }
+  
+  // Use setTimeout and setInterval to updateTimeBasedStyles at the top of the next hour and again every hour after
+  function runTopOfTheHour () {
+    updateTimeBasedStyles();
+    var minLeft = 60 - dayjs().format("m");
+    setTimeout(function () {
+      updateTimeBasedStyles();
+      setInterval(function() {
+        updateTimeBasedStyles();
+      }, 60*60*1000);
+    }, minLeft*60*1000);
+  };
+
+  //Set the class for each time block based on past/present/future based on the current time
+  function updateTimeBasedStyles() {
+    var curHour = Number(dayjs().format("H"));
+    for (let j = 0; j < timeBlockDivsArr.length; j++) {
+      if (timeBlockDivsArr[j].id.substr(5) == curHour) {
+        timeBlockDivsArr[j].setAttribute("class", "row time-block present");
+      }
+      else if (timeBlockDivsArr[j].id.substr(5) < curHour) {
+        timeBlockDivsArr[j].setAttribute("class", "row time-block past");
       }
       else {
-        hourDivs[i].setAttribute("class", "row time-block future");
+        timeBlockDivsArr[j].setAttribute("class", "row time-block future");
       }     
     }
   }
-
-
-  // TODO: Add code to apply the past, present, or future class to each time
-  // block by comparing the id to the current hour. HINTS: How can the id
-  // attribute of each time-block be used to conditionally add or remove the
-  // past, present, and future classes? How can Day.js be used to get the
-  // current hour in 24-hour time?
-  //
-  // TODO: Add code to get any user input that was saved in localStorage and set
-  // the values of the corresponding textarea elements. HINT: How can the id
-  // attribute of each time-block be used to do this?
-  //
-  // TODO: Add code to display the current date in the header of the page.
-  
 
 });
