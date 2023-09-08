@@ -15,7 +15,7 @@ N/A
 
 ## Usage
 
-Access the website at https://aerostokes.github.io/05-work-day-scheduler/ 
+Access the website at https://aerostokes.github.io/work-day-scheduler/ 
 
 The current date will be displayed in the header and the time blocks will update every hour to show future time in green, present time in red, and past time in grey. 
 
